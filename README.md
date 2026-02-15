@@ -1,52 +1,147 @@
-# Hawkeye x402 Agent API
+# RyanClaw x402 Service
 
-Paid API service for agent-to-agent payments via x402 protocol on Base.
+Payment-enabled agent API running on Base network with x402 protocol.
 
-## Quick Deploy to Railway (CLI)
-
-```bash
-cd x402-service
-railway login
-railway init
-railway variables set PAY_TO="0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E"
-railway up
-```
-
-## Quick Deploy to Railway (GitHub)
-
-1. Push to GitHub:
-   ```bash
-   cd x402-service
-   git init
-   git add -A
-   git commit -m "Initial x402 service"
-   gh repo create x402-service --public --description "x402 paid API service"
-   git remote add origin https://github.com/ryanthawks/x402-service.git
-   git push -u origin main
-   ```
-
-2. Connect to Railway:
-   - Go to https://railway.app
-   - "New Project" → "Deploy from GitHub"
-   - Select `ryanthawks/x402-service`
-   - Add env var: `PAY_TO=0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E`
-
-## Endpoints
-
-| Endpoint | Price | Description |
-|----------|-------|-------------|
-| `GET /api/status` | $0.001 | Agent status check |
-| `POST /api/memory-query` | $0.005 | Query memory store |
-| `GET /api/verify-agent` | $0.01 | Verify ERC-8004 agent |
-
-## Announce Service
+## Quick Start
 
 ```bash
-npx awal@latest x402 bazaar announce https://<your-railway-app>.railway.app/api/status
+cd ~/.openclaw/workspace/x402-service
+npm install
+npm start
 ```
 
-## Check Earnings
+## API Endpoints
 
-```bash
-npx awal@latest balance
+### GET /health
+Free health check (no payment required)
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "service": "RyanClaw Agent API",
+  "version": "2.0.0"
+}
 ```
+
+---
+
+### GET /api/status
+Check agent status and capabilities.
+
+**Price:** $0.001
+
+**Response:**
+```json
+{
+  "service": "RyanClaw Agent API",
+  "version": "2.0.0",
+  "agentId": "2079",
+  "network": "base",
+  "capabilities": ["security-audit", "memory-query", "agent-verification", "onchain-query"],
+  "paymentAddress": "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E"
+}
+```
+
+---
+
+### POST /api/memory-query
+Query the local memory store for relevant context.
+
+**Price:** $0.005
+
+**Request Body:**
+```json
+{
+  "query": "search term"
+}
+```
+
+**Response:**
+```json
+{
+  "query": "search term",
+  "results": [...],
+  "source": "nemp"
+}
+```
+
+---
+
+### GET /api/verify-agent
+Verify an ERC-8004 agent identity on-chain.
+
+**Price:** $0.01
+
+**Query Parameters:**
+- `agentId` (required): Numeric agent ID
+
+**Response:**
+```json
+{
+  "agentId": "1234",
+  "verified": true,
+  "registry": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+  "network": "base",
+  "timestamp": "2026-02-15T14:10:00.000Z"
+}
+```
+
+---
+
+### POST /api/security-audit
+Audit Solidity smart contracts for common vulnerabilities.
+
+**Price:** $0.05
+
+**Request Body:**
+```json
+{
+  "code": "contract MyContract { ... }"
+}
+```
+
+**Response:**
+```json
+{
+  "issues": [
+    { "severity": "high", "issue": "delegatecall without safety check" }
+  ],
+  "summary": "1 potential issues",
+  "scannedAt": "2026-02-15T14:10:00.000Z"
+}
+```
+
+**Detected Issues:**
+- High: `delegatecall` without safety comments
+- High: `selfdestruct` / `suicide` calls
+- Medium: Use of `tx.origin` (should use `msg.sender`)
+- Medium: No validation checks (`require`/`revert`)
+- Medium: `abi.encodePacked` with dynamic types (hash collision risk)
+- Low: Timestamp/block number dependencies
+
+---
+
+## Payment
+
+All protected endpoints use x402 payment protocol:
+
+1. Client sends request
+2. Server responds with HTTP 402 (Payment Required)
+3. Client pays via facilitator
+4. Client retries with payment proof
+5. Server verifies and processes
+
+## Rate Limiting
+
+- **Limit:** 30 requests per minute per IP
+- **Response:** HTTP 429 when exceeded
+
+## Production Features
+
+- ✅ CORS enabled
+- ✅ Request logging with timestamps
+- ✅ Rate limiting (in-memory)
+- ✅ Input validation
+- ✅ Error handling
+- ✅ x402 payment middleware

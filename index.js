@@ -137,6 +137,11 @@ app.use((err, req, res, next) => {
 // ENDPOINTS
 // ============================================================
 
+// Free root endpoint
+app.get("/", (req, res) => {
+  res.json({ service: "RyanClaw Agent API", version: "2.0.0", endpoints: ["/health", "/api/status", "/api/verify-agent", "/api/memory-query", "/api/security-audit"] });
+});
+
 // Free health check (no payment required)
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "RyanClaw Agent API", version: "2.0.0" });

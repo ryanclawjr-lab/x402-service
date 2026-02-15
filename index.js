@@ -139,7 +139,12 @@ app.use((err, req, res, next) => {
 
 // Free root endpoint
 app.get("/", (req, res) => {
-  res.json({ service: "RyanClaw Agent API", version: "2.0.0", endpoints: ["/health", "/api/status", "/api/verify-agent", "/api/memory-query", "/api/security-audit"] });
+  res.json({ service: "RyanClaw Agent API", version: "2.0.0", endpoints: ["/health", "/test", "/api/status", "/api/verify-agent", "/api/memory-query", "/api/security-audit"] });
+});
+
+// Debug test endpoint (no payment)
+app.get("/test", (req, res) => {
+  res.json({ test: "works", timestamp: new Date().toISOString() });
 });
 
 // Free health check (no payment required)
